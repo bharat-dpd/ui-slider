@@ -127,6 +127,12 @@ angular.module('ui.slider', []).value('uiSliderConfig',{}).directive('uiSlider',
                 ngModel.$render = function() {
                     init();
                     var method = options.range === true ? 'values' : 'value';
+                     var properties = ['tip'];
+                    angular.forEach(properties, function(property) {
+                        if (angular.isDefined(attrs[property])) {
+                            options[property] = attrs[property];
+                        }
+                    });
 
                     if (options.range !== true && isNaN(ngModel.$viewValue) && !(ngModel.$viewValue instanceof Array)) {
                         ngModel.$viewValue = 0;
@@ -170,6 +176,21 @@ angular.module('ui.slider', []).value('uiSliderConfig',{}).directive('uiSlider',
 
                     }
                     elm.slider(method, ngModel.$viewValue);
+                    /*Update tip value once model value change 
+                    through two way binding*/
+                    $timeout(function(){
+                        var handles = elm.find('.ui-slider-handle');
+                        if(handles.length>1 && angular.isArray(ngModel.$viewValue) && options.range && options.tip){
+                            $(handles[0]).find('.ui-slider-tip').remove();
+                            $(handles[1]).find('.ui-slider-tip').remove();
+                            $(handles[0]).append('<div class="ui-slider-tip">'+ngModel.$viewValue[0]+'</div>');
+                            $(handles[1]).append('<div class="ui-slider-tip">'+ngModel.$viewValue[1]+'</div>');
+                        }else if(options.tip){
+                            elm.find('.ui-slider-handle').find('.ui-slider-tip').remove();
+                            elm.find('.ui-slider-handle').append('<div class="ui-slider-tip">'+ngModel.$viewValue+'</div>');
+                        }
+
+                    },10);
                 };
 
                 scope.$watch(attrs.ngModel, function() {
